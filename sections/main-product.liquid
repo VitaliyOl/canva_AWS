@@ -892,13 +892,15 @@
               console.log('File loaded as data URL:', this.img);
               emitter.emit('open-modal', this.img);
             };
-            reader.readAsDataURL(files[0]); 
+            reader.readAsDataURL(files[0]);
+          }
         }
       },
       mounted() {
         console.log('Upload component mounted');
       }
     });
+
     
     const modalApp = createApp({
       delimiters: ['${', '}'],
