@@ -1,0 +1,303 @@
+<div class="page-width"> 
+  <div id="fotovue" class="foto__wrapper">
+    <input type="file" @change="handleFileUpload" v-if="!img && !showModal" />
+    <div v-cloak>
+      <div v-if="img && showModal" class="modal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Crop Image</h2>
+            <span class="close" @click="closeModal">×</span>
+          </div>
+          <div class="modal-body">
+            <cropper
+              class="cropper"
+              :src="img"
+              ref="cropper"
+              :stencil-props="{ aspectRatio: 1 }"
+            ></cropper>
+          </div>
+          <div class="modal-footer">
+            <button @click="crop">Crop</button>
+            <button @click="reset">Reset</button>
+          </div>
+        </div>
+      </div>
+      <div class="results" v-if="showResults">
+        <div class="results__wrapper">
+          <div class="results__coordinates">
+            <p class="results__coordinates-title">Results:</p>
+            <p class="results__coordinates-value">Width: ${coordinates.width}</p>
+            <p class="results__coordinates-value">Height: ${coordinates.height}</p>
+            <p class="results__coordinates-value">Left: ${coordinates.left}</p>
+            <p class="results__coordinates-value">Top: ${coordinates.top}</p>
+          </div>
+          <div class="results__preview">
+            <img v-if="image.src" :src="image.src" alt="Cropped Image" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+<script type="module">
+  window.addEventListener('load', () => {
+    const { createApp } = Vue;
+    const { Cropper } = VueAdvancedCropper;
+    
+    function getMimeType(file, fallback = null) {
+      const byteArray = (new Uint8Array(file)).subarray(0, 4);
+      let header = '';
+      for (let i = 0; i < byteArray.length; i++) {
+        header += byteArray[i].toString(16);
+      }
+      switch (header) {
+        case "89504e47":
+          return "image/png";
+        case "47494638":
+          return "image/gif";
+        case "ffd8ffe0":
+        case "ffd8ffe1":
+        case "ffd8ffe2":
+        case "ffd8ffe3":
+        case "ffd8ffe8":
+          return "image/jpeg";
+        default:
+          return fallback;
+      }
+    }
+
+    createApp({
+      delimiters: ['${', '}'], 
+      components: {
+        Cropper
+      },
+      data() {
+        return {
+          coordinates: {
+            width: 0,
+            height: 0,
+            left: 0,
+            top: 0,
+          },
+          image: {
+            src: null,
+            type: null
+          },
+          img: null,
+          showResults: false,
+          showModal: false 
+        };
+      },
+      methods: {
+        crop() {
+          const cropper = this.$refs.cropper;          
+          if (cropper && typeof cropper.getResult === 'function') {
+            const result = cropper.getResult();           
+            console.log('crop')
+            this.coordinates = result.coordinates;
+            result.canvas.toBlob((blob) => {
+             
+            }, this.image.type);
+            this.image.src = result.canvas.toDataURL();
+            this.showResults = true; 
+            this.img = null;
+            this.showModal = false;           
+          } else {
+            console.error('Cropper is not initialized or getResult method is not available.');
+          }
+        },
+        reset() {
+          this.image = {
+            src: null,
+            type: null
+          };
+          this.img = null;
+          this.showResults = false;
+          this.showModal = false; 
+          console.log('reset')
+        },
+        handleFileUpload(event) {
+          const { files } = event.target;
+          if (files && files[0]) {
+            console.log('upload')
+            if (this.image.src) {
+              URL.revokeObjectURL(this.image.src);
+              console.log('revoke')
+            }
+            const blob = URL.createObjectURL(files[0]);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+            console.log('reader')
+            this.img = blob;
+            this.image.type = getMimeType(e.target.result, files[0].type);
+              // Force update the state
+            this.$nextTick(() => {
+            this.showModal = true; 
+            this.$forceUpdate();
+            console.log('next')
+              });
+            };
+            reader.readAsArrayBuffer(files[0]);
+            console.log('reader')
+          }
+        },
+        closeModal() {
+          this.showModal = false;        
+          this.img = null;
+          this.showResults = true;                
+          console.log('close')
+        }
+      },
+      destroyed() {
+         console.log('destr')
+        if (this.image.src) {
+          URL.revokeObjectURL(this.image.src);
+           console.log('revokeDestr')
+        }
+      },
+      mounted() {
+         console.log('mount')
+        const cloakedElements = document.querySelectorAll('[v-cloak]');
+        cloakedElements.forEach(element => {
+          element.removeAttribute('v-cloak');
+        });
+      }
+    }).mount('#fotovue');
+  });
+</script>
+
+
+
+
+
+
+
+
+
+<style>
+[v-cloak] {
+  display: none;
+}
+
+
+
+.cropper {
+  width: 100%;
+  height: 400px;
+  overflow: hidden; 
+}
+
+.vue-advanced-cropper__image {
+  object-fit: cover; 
+}
+
+
+
+.results__wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px dashed hsla(0, 0%, 100%, 0.5);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 10px;
+}
+
+.results__coordinates {
+  font-size: 10px;
+  pointer-events: none;
+  margin-right: 10px; 
+}
+
+.results__coordinates-title {
+  margin-top: 2px;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+
+.results__coordinates-value {
+  margin-top: 2px;
+  margin-bottom: 2px;
+  line-height: 1.7;
+}
+
+.results__preview {
+  width: 375px; 
+  height: 375px; 
+  flex-shrink: 0;
+}
+
+.results__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+  display: block;
+}
+
+#fotovue .vue-advanced-cropper__stretcher,
+#fotovue .vue-advanced-cropper__background,
+#fotovue .vue-advanced-cropper__foreground {
+  display: block !important;
+}
+
+/* Modal styles */
+.modal {
+  display: block;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.modal-header, .modal-footer {
+  padding: 2px 16px;
+  background-color: #5cb85c;
+  color: white;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 2px 16px;
+}
+
+.results {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+}
+
+
+</style>

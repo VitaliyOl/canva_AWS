@@ -1,0 +1,110 @@
+[v-cloak] {
+  display: none;
+}
+
+.modal {
+  display: none;
+}
+
+.modal-open .modal {
+  display: block;
+}
+
+/* Modal styles */
+.modal {
+  display: block;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0, 0, 0);
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+.modal-header,
+.modal-footer {
+  padding: 2px 16px;
+  background-color: #5cb85c;
+  color: white;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal-body {
+  padding: 2px 16px;
+}
+
+#modal-container .vue-advanced-cropper__stretcher,
+#modal-container .vue-advanced-cropper__background,
+#modal-container .vue-advanced-cropper__foreground {
+  display: block !important;
+}
+
+/* images from main product */
+
+.testing-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  position: relative;
+}
+
+.testing-container .main-image {
+  display: block;
+  width: 906px;
+  height: auto;
+}
+
+.testing-container--wrapper {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.testing-container--wrapper .overlay-image {
+  display: block;
+  width: 393px;
+  height: auto;
+  position: relative;
+  z-index: 2;
+}
+
+.testing-container--result {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.testing-container--result img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
